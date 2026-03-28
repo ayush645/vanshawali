@@ -55,6 +55,9 @@ const connectDB = async () => {
 // --- MOUNT ROUTES ---
 // We mount all routes under /api. 
 // This includes Auth, Communities, Tree, Subscriptions, AND Memories.
+app.get('/', (req, res) => {
+  res.send('API is running 🚀');
+});
 app.use('/api', allRoutes);
 
 
