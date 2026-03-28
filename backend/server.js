@@ -1,7 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-
+require('dotenv').config();
 // Import utilities and models for the Admin-check logic
 const { bcrypt } = require('./src/config/utils'); 
 const { User } = require('./src/models/allModels');
@@ -23,7 +23,7 @@ app.use(cors({
 }));
 
 // --- CONFIGURATION ---
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5000;
 const MONGODB_URI = 'mongodb+srv://sapremmangocup2025_db_user:h5xiSNhW1Sxedzjv@cluster0prem.fbhatto.mongodb.net/vansahwali?retryWrites=true&w=majority&appName=Cluster0prem'; 
 
 // --- DATABASE CONNECTION & ADMIN SETUP ---
@@ -63,7 +63,6 @@ app.use('/api', allRoutes);
 const startServer = () => {
     app.listen(PORT, () => {
         console.log(`🚀 Server running on http://localhost:${PORT}`);
-        console.log('📝 Documentation: Use http://localhost:3000/api/{route}');
     });
 };
 
