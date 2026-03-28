@@ -24,7 +24,7 @@ app.use(cors({
 
 // --- CONFIGURATION ---
 const PORT = process.env.PORT || 3000;
-const MONGODB_URI = 'mongodb://localhost:27017/familytreeDB_mvc'; 
+const MONGODB_URI = 'mongodb+srv://sapremmangocup2025_db_user:h5xiSNhW1Sxedzjv@cluster0prem.fbhatto.mongodb.net/vansahwali?retryWrites=true&w=majority&appName=Cluster0prem'; 
 
 // --- DATABASE CONNECTION & ADMIN SETUP ---
 const connectDB = async () => {
