@@ -11,6 +11,8 @@ const allRoutes = require('./src/routes/allRoutes');
 
 const app = express();
 
+
+
 // --- MIDDLEWARE ---
 // app.use(express.json()); 
 app.use(express.json());
@@ -24,7 +26,7 @@ app.use(cors({
 
 // --- CONFIGURATION ---
 const PORT = process.env.PORT || 5000;
-const MONGODB_URI = 'mongodb+srv://sapremmangocup2025_db_user:h5xiSNhW1Sxedzjv@cluster0prem.fbhatto.mongodb.net/vansahwali?retryWrites=true&w=majority&appName=Cluster0prem'; 
+const MONGODB_URI = 'mongodb+srv://sapremmangocup2025_db_user:h5xiSNhW1Sxedzjv@cluster0prem.fbhatto.mongodb.net/famlytree?retryWrites=true&w=majority&appName=Cluster0prem'; 
 
 // --- DATABASE CONNECTION & ADMIN SETUP ---
 const connectDB = async () => {
