@@ -1,6 +1,7 @@
 const { User, OTP, Community, TreeMember, Memory, Subscription, Notification, Announcement, Referral, CorrectionRequest } = require('../models/allModels');
 const { bcrypt, jwt, generateOTP, sendEmail, Razorpay } = require('../config/utils');
 const cloudinary = require('../config/cloudinary');
+const { sendNotificationToUser, sendNotificationToUsers } = require('../config/firebase');
 
 // Helper function to generate unique referral code
 function generateReferralCode() {
@@ -12,6 +13,37 @@ function calculateProfileCompletion(user) {
     const fields = ['name', 'surname', 'village', 'city', 'caste', 'bio', 'profilePhoto', 'community'];
     const completed = fields.filter(field => user[field]).length;
     return Math.round((completed / fields.length) * 100);
+}
+
+// Helper function to create notification with push notification
+async function createNotificationWithPush(userId, type, title, message, data = {}) {
+    try {
+        // Create database notification
+        const notification = await Notification.create({
+            user: userId,
+            type,
+            title,
+            message,
+            data,
+        });
+
+        // Send push notification
+        try {
+            await sendNotificationToUser(userId, title, message, {
+                type,
+                notificationId: notification._id.toString(),
+                ...data,
+            });
+        } catch (pushError) {
+            console.error('Failed to send push notification:', pushError);
+            // Don't fail the whole operation if push notification fails
+        }
+
+        return notification;
+    } catch (error) {
+        console.error('Error creating notification:', error);
+        throw error;
+    }
 }
 
 exports.authController = {
@@ -86,12 +118,12 @@ exports.authController = {
                     status: 'completed',
                 });
                 
-                await Notification.create({
-                    user: user.referredBy,
-                    type: 'referral_earned',
-                    title: 'Referral Bonus!',
-                    message: `You earned 10 points for referring ${user.name}`,
-                });
+                await createNotificationWithPush(
+                    user.referredBy,
+                    'referral_earned',
+                    'Referral Bonus!',
+                    `You earned 10 points for referring ${user.name}`
+                );
             }
             
             const token = jwt.sign({ id: user._id, role: user.role });
@@ -1475,7 +1507,7 @@ exports.userController = {
             await User.findByIdAndUpdate(
                 req.user._id,
                 { profileCompletion },
-                { new: false }
+                { new: false, runValidators: false }
             );
             
             res.json({ 
@@ -1496,6 +1528,44 @@ exports.userController = {
         } catch (error) {
             console.error('Update profile error:', error);
             res.status(500).json({ message: 'Failed to update profile' });
+        }
+    },
+
+    // ✅ Update FCM Token
+    updateFCMToken: async (req, res) => {
+        try {
+            const { fcmToken } = req.body;
+            const userId = req.user._id;
+
+            if (!fcmToken) {
+                return res.status(400).json({ message: 'FCM token is required' });
+            }
+
+            await User.findByIdAndUpdate(userId, { fcmToken });
+
+            res.json({ message: 'FCM token updated successfully' });
+        } catch (error) {
+            console.error('Update FCM token error:', error);
+            res.status(500).json({ message: 'Server error' });
+        }
+    },
+
+    // ✅ Test Notification (for testing Firebase setup)
+    testNotification: async (req, res) => {
+        try {
+            const userId = req.user._id;
+            
+            await createNotificationWithPush(
+                userId,
+                'system',
+                'Test Notification',
+                'Firebase push notifications are working! 🎉'
+            );
+
+            res.json({ message: 'Test notification sent successfully' });
+        } catch (error) {
+            console.error('Test notification error:', error);
+            res.status(500).json({ message: 'Failed to send test notification', error: error.message });
         }
     }
 };

@@ -48,6 +48,9 @@ const UserSchema = new mongoose.Schema({
     // Tree settings
     treeName: { type: String, default: null },
     treeIsPublic: { type: Boolean, default: false },
+    
+    // Push notifications
+    fcmToken: { type: String, default: null },
 }, { timestamps: true });
 
 const OTPSchema = new mongoose.Schema({

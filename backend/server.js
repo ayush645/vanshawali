@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 require('dotenv').config();
+
 // Import utilities and models for the Admin-check logic
 const { bcrypt } = require('./src/config/utils'); 
 const { User } = require('./src/models/allModels');
@@ -14,19 +15,41 @@ const app = express();
 
 
 // --- MIDDLEWARE ---
-// app.use(express.json()); 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 app.use(cors({
-    origin: "*", // Allows requests from Expo Go and mobile devices
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
-    credentials: true
+    origin: function (origin, callback) {
+        // Allow requests with no origin (like mobile apps or curl requests)
+        if (!origin) return callback(null, true);
+        
+        const allowedOrigins = [
+            'http://localhost:8081',
+            'http://localhost:19006', 
+            'https://api.tatvagyaan.in',
+            'http://127.0.0.1:8081',
+            'http://192.168.1.1:8081', // Add your local IP if needed
+        ];
+        
+        if (allowedOrigins.indexOf(origin) !== -1) {
+            callback(null, true);
+        } else {
+            console.log('CORS blocked origin:', origin);
+            callback(null, true); // Allow all for now
+        }
+    },
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept", "Origin"],
+    credentials: true,
+    preflightContinue: false,
+    optionsSuccessStatus: 200
 }));
 
 // --- CONFIGURATION ---
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 3000;
 const MONGODB_URI = 'mongodb+srv://sapremmangocup2025_db_user:h5xiSNhW1Sxedzjv@cluster0prem.fbhatto.mongodb.net/famlytree?retryWrites=true&w=majority&appName=Cluster0prem'; 
+
+
 
 // --- DATABASE CONNECTION & ADMIN SETUP ---
 const connectDB = async () => {
@@ -55,19 +78,50 @@ const connectDB = async () => {
 };
 
 // --- MOUNT ROUTES ---
+// Handle preflight requests explicitly for all routes
+app.use((req, res, next) => {
+    const origin = req.headers.origin;
+    console.log(`${new Date().toISOString()} - ${req.method} ${req.path} - Origin: ${origin || 'none'}`);
+    
+    if (req.method === 'OPTIONS') {
+        console.log('Handling OPTIONS request for:', req.path);
+        res.header('Access-Control-Allow-Origin', origin || '*');
+        res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+        res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
+        res.header('Access-Control-Allow-Credentials', 'true');
+        res.header('Access-Control-Max-Age', '86400'); // 24 hours
+        return res.sendStatus(200);
+    }
+    next();
+});
+
+// Test endpoint to verify server is working
+app.get('/api/test', (req, res) => {
+    res.json({ message: 'Server is working!', timestamp: new Date().toISOString() });
+});
+
 // We mount all routes under /api. 
 // This includes Auth, Communities, Tree, Subscriptions, AND Memories.
-app.get('/', (req, res) => {
-  res.send('API is running 🚀');
-});
 app.use('/api', allRoutes);
 
 
 
 // --- START SERVER ---
 const startServer = () => {
-    app.listen(PORT, () => {
+    const server = app.listen(PORT, '0.0.0.0', () => {
         console.log(`🚀 Server running on http://localhost:${PORT}`);
+        console.log(`📝 Documentation: Use http://localhost:${PORT}/api/{route}`);
+        console.log(`🌐 CORS enabled for all origins`);
+        console.log(`🔧 Environment: ${process.env.NODE_ENV || 'development'}`);
+    });
+
+    server.on('error', (error) => {
+        if (error.code === 'EADDRINUSE') {
+            console.error(`❌ Port ${PORT} is already in use. Please use a different port.`);
+        } else {
+            console.error('❌ Server error:', error);
+        }
+        process.exit(1);
     });
 };
 

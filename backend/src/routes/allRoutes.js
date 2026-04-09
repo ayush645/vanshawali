@@ -16,6 +16,10 @@ router.post('/auth/social-login', authController.socialLogin);
 router.post('/auth/complete-profile', authMiddleware, authController.completeProfile);
 router.get('/auth/me', authMiddleware, authController.getMe);
 
+// ==================== FCM TOKEN ROUTES ====================
+router.post('/fcm/token', authMiddleware, userController.updateFCMToken);
+router.post('/test-notification', authMiddleware, userController.testNotification);
+
 // ==================== DASHBOARD ROUTES ====================
 router.get('/dashboard/home', authMiddleware, dashboardController.getHome);
 router.get('/dashboard/notifications', authMiddleware, dashboardController.getNotifications);
