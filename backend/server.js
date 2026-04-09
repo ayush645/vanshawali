@@ -29,14 +29,33 @@ app.use(cors({
             'https://api.tatvagyaan.in',
             'http://127.0.0.1:8081',
             'http://192.168.1.1:8081', // Add your local IP if needed
+            'https://fastidious-granita-890d86.netlify.app', // Netlify deployment
         ];
         
+        // Allow common deployment platforms
+        const allowedPatterns = [
+            /^https:\/\/.*\.netlify\.app$/,
+            /^https:\/\/.*\.vercel\.app$/,
+            /^https:\/\/.*\.github\.io$/,
+            /^https:\/\/.*\.web\.app$/,
+            /^https:\/\/.*\.firebaseapp\.com$/
+        ];
+        
+        // Check exact matches first
         if (allowedOrigins.indexOf(origin) !== -1) {
-            callback(null, true);
-        } else {
-            console.log('CORS blocked origin:', origin);
-            callback(null, true); // Allow all for now
+            return callback(null, true);
         }
+        
+        // Check pattern matches
+        for (const pattern of allowedPatterns) {
+            if (pattern.test(origin)) {
+                console.log('CORS allowed pattern match:', origin);
+                return callback(null, true);
+            }
+        }
+        
+        console.log('CORS blocked origin:', origin);
+        callback(null, true); // Allow all for now - change to false for production
     },
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept", "Origin"],
