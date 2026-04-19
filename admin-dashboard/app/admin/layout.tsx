@@ -23,7 +23,8 @@ const navigation = [
   { name: 'Communities', href: '/admin/communities', icon: Building2 },
   { name: 'Corrections', href: '/admin/corrections', icon: FileEdit },
   { name: 'Announcements', href: '/admin/announcements', icon: Megaphone },
-  { name: 'Subscriptions', href: '/admin/subscriptions', icon: Crown },
+  { name: 'Plans', href: '/admin/plans', icon: Crown },
+  { name: 'Subscriptions', href: '/admin/subscriptions', icon: Users },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {

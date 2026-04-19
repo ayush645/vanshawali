@@ -120,7 +120,7 @@ export default function CommunitiesPage() {
   const fetchCommunities = async () => {
     try {
       const token = localStorage.getItem('admin_token');
-      const res = await fetch('http://localhost:3000/api/communities', {
+      const res = await fetch('https://api.vanshawali.tatvagyaan.in/api/communities', {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -149,7 +149,7 @@ export default function CommunitiesPage() {
 
     try {
       const token = localStorage.getItem('admin_token');
-      const res = await fetch('http://localhost:3000/api/admin/communities', {
+      const res = await fetch('https://api.vanshawali.tatvagyaan.in/api/admin/communities', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -181,7 +181,7 @@ export default function CommunitiesPage() {
 
     try {
       const token = localStorage.getItem('admin_token');
-      const res = await fetch(`http://localhost:3000/api/admin/communities/${editingCommunity._id}`, {
+      const res = await fetch(`https://api.vanshawali.tatvagyaan.in/api/admin/communities/${editingCommunity._id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -211,7 +211,7 @@ export default function CommunitiesPage() {
 
     try {
       const token = localStorage.getItem('admin_token');
-      const res = await fetch(`http://localhost:3000/api/admin/communities/${communityId}`, {
+      const res = await fetch(`https://api.vanshawali.tatvagyaan.in/api/admin/communities/${communityId}`, {
         method: 'DELETE',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -237,7 +237,7 @@ export default function CommunitiesPage() {
     setIsSyncing(true);
     try {
       const token = localStorage.getItem('admin_token');
-      const res = await fetch('http://localhost:3000/api/admin/communities/sync-members', {
+      const res = await fetch('https://api.vanshawali.tatvagyaan.in/api/admin/communities/sync-members', {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,

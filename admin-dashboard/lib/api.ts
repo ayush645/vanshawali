@@ -1,12 +1,12 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://localhost:3000/api',
+  baseURL: 'https://api.vanshawali.tatvagyaan.in/api',
 });
 
 // Add token to requests if it exists
 api.interceptors.request.use((config) => {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('adminToken') : null;
+  const token = typeof window !== 'undefined' ? localStorage.getItem('admin_token') : null;
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -19,7 +19,7 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       if (typeof window !== 'undefined') {
-        localStorage.removeItem('adminToken');
+        localStorage.removeItem('admin_token');
         window.location.href = '/login';
       }
     }

@@ -34,7 +34,7 @@ export default function AnnouncementsPage() {
   const fetchAnnouncements = async () => {
     try {
       const token = localStorage.getItem('admin_token');
-      const response = await fetch('http://localhost:3000/api/admin/announcements', {
+      const response = await fetch('https://api.vanshawali.tatvagyaan.in/api/admin/announcements', {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -72,7 +72,7 @@ export default function AnnouncementsPage() {
         body.expiresAt = new Date(expiresAt).toISOString();
       }
 
-      const response = await fetch('http://localhost:3000/api/admin/announcements', {
+      const response = await fetch('https://api.vanshawali.tatvagyaan.in/api/admin/announcements', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -120,7 +120,7 @@ export default function AnnouncementsPage() {
         body.expiresAt = new Date(expiresAt).toISOString();
       }
 
-      const response = await fetch(`http://localhost:3000/api/admin/announcements/${editingAnnouncement._id}`, {
+      const response = await fetch(`https://api.vanshawali.tatvagyaan.in/api/admin/announcements/${editingAnnouncement._id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -153,7 +153,7 @@ export default function AnnouncementsPage() {
 
     try {
       const token = localStorage.getItem('admin_token');
-      const response = await fetch(`http://localhost:3000/api/admin/announcements/${id}`, {
+      const response = await fetch(`https://api.vanshawali.tatvagyaan.in/api/admin/announcements/${id}`, {
         method: 'DELETE',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -175,7 +175,7 @@ export default function AnnouncementsPage() {
   const handleToggleActive = async (announcement: Announcement) => {
     try {
       const token = localStorage.getItem('admin_token');
-      const response = await fetch(`http://localhost:3000/api/admin/announcements/${announcement._id}`, {
+      const response = await fetch(`https://api.vanshawali.tatvagyaan.in/api/admin/announcements/${announcement._id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

@@ -52,7 +52,7 @@ export default function CorrectionsPage() {
       console.log('Fetching corrections with token:', token ? 'exists' : 'missing');
       console.log('Filter:', statusFilter);
 
-      const response = await fetch(`http://localhost:3000/api/admin/corrections?${params.toString()}`, {
+      const response = await fetch(`https://api.vanshawali.tatvagyaan.in/api/admin/corrections?${params.toString()}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -83,7 +83,7 @@ export default function CorrectionsPage() {
       const token = localStorage.getItem('admin_token');
       console.log('Submitting review:', { status: reviewStatus, notes: reviewNotes });
 
-      const response = await fetch(`http://localhost:3000/api/admin/corrections/${selectedRequest._id}/review`, {
+      const response = await fetch(`https://api.vanshawali.tatvagyaan.in/api/admin/corrections/${selectedRequest._id}/review`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

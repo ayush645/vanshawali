@@ -54,7 +54,7 @@ export default function UsersPage() {
   const fetchUsers = async () => {
     try {
       const token = localStorage.getItem('admin_token');
-      const res = await fetch('http://localhost:3000/api/admin/users', {
+      const res = await fetch('https://api.vanshawali.tatvagyaan.in/api/admin/users', {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -77,7 +77,7 @@ export default function UsersPage() {
 
     try {
       const token = localStorage.getItem('admin_token');
-      const res = await fetch(`http://localhost:3000/api/admin/users/${userId}`, {
+      const res = await fetch(`https://api.vanshawali.tatvagyaan.in/api/admin/users/${userId}`, {
         method: 'DELETE',
         headers: {
           Authorization: `Bearer ${token}`,

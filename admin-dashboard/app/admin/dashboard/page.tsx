@@ -29,7 +29,7 @@ export default function DashboardPage() {
   const fetchStats = async () => {
     try {
       const token = localStorage.getItem('admin_token');
-      const res = await fetch('http://localhost:3000/api/admin/dashboard', {
+      const res = await fetch('https://api.vanshawali.tatvagyaan.in/api/admin/dashboard', {
         headers: {
           Authorization: `Bearer ${token}`,
         },

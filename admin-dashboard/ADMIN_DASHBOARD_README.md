@@ -104,7 +104,7 @@ The dashboard connects to the following backend API endpoints:
 2. **Set up environment variables** (if needed):
    Create a `.env.local` file in the root directory:
    ```
-   NEXT_PUBLIC_API_URL=http://localhost:3000
+   NEXT_PUBLIC_API_URL=https://api.vanshawali.tatvagyaan.in
    ```
 
 3. **Run the development server**:
@@ -113,11 +113,11 @@ The dashboard connects to the following backend API endpoints:
    ```
 
 4. **Open your browser**:
-   Navigate to `http://localhost:3000`
+   Navigate to `https://api.vanshawali.tatvagyaan.in`
 
 ### Login
 
-1. Visit `http://localhost:3000/login`
+1. Visit `https://api.vanshawali.tatvagyaan.in/login`
 2. Enter your admin credentials
 3. On successful login, you'll be redirected to the dashboard
 4. The JWT token will be stored in localStorage for subsequent requests
@@ -210,7 +210,7 @@ The dashboard includes robust error handling:
 ## Troubleshooting
 
 ### Login Issues
-- Verify backend API is running on `http://localhost:3000/api`
+- Verify backend API is running on `https://api.vanshawali.tatvagyaan.in/api`
 - Check browser console for detailed error messages
 - Ensure credentials are correct
 
