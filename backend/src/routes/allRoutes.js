@@ -87,8 +87,18 @@ router.delete('/admin/communities/:id', authMiddleware, adminMiddleware, adminCo
 router.post('/admin/communities/sync-members', authMiddleware, adminMiddleware, adminController.syncCommunityMembers);
 router.get('/admin/communities/:id/users', authMiddleware, adminMiddleware, adminController.getCommunityUsers);
 
-// Subscriptions
+// Subscription Plans Management
+router.get('/admin/plans', authMiddleware, adminMiddleware, adminController.getAllPlans);
+router.post('/admin/plans', authMiddleware, adminMiddleware, adminController.createPlan);
+router.put('/admin/plans/:id', authMiddleware, adminMiddleware, adminController.updatePlan);
+router.delete('/admin/plans/:id', authMiddleware, adminMiddleware, adminController.deletePlan);
+router.get('/admin/plans/:planId/subscribers', authMiddleware, adminMiddleware, adminController.getPlanSubscribers);
+
+// User Subscriptions Management
 router.get('/admin/subscriptions', authMiddleware, adminMiddleware, adminController.getAllSubscriptions);
+router.post('/admin/subscriptions', authMiddleware, adminMiddleware, adminController.createSubscription);
+router.put('/admin/subscriptions/:id', authMiddleware, adminMiddleware, adminController.updateSubscription);
+router.delete('/admin/subscriptions/:id', authMiddleware, adminMiddleware, adminController.deleteSubscription);
 
 // Announcements
 router.post('/admin/announcements', authMiddleware, adminMiddleware, adminController.createAnnouncement);

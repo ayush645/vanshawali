@@ -143,6 +143,20 @@ const MemorySchema = new mongoose.Schema({
     description: { type: String },
 }, { timestamps: true });
 
+const SubscriptionPlanSchema = new mongoose.Schema({
+    name: { type: String, required: true }, // e.g., "Premium Monthly"
+    planId: { type: String, required: true, unique: true }, // e.g., "premium_monthly"
+    price: { type: Number, required: true },
+    currency: { type: String, default: 'INR' },
+    interval: { type: String, enum: ['month', 'year', 'lifetime'], required: true },
+    features: [{ type: String }], // Array of features
+    description: { type: String },
+    isActive: { type: Boolean, default: true },
+    isPopular: { type: Boolean, default: false },
+    displayOrder: { type: Number, default: 0 },
+    razorpayPlanId: { type: String }, // For Razorpay integration
+}, { timestamps: true });
+
 const SubscriptionSchema = new mongoose.Schema({
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     planName: { type: String, default: 'Premium' },
@@ -219,6 +233,7 @@ module.exports = {
     Community: mongoose.model('Community', CommunitySchema),
     TreeMember: mongoose.model('TreeMember', TreeMemberSchema),
     Memory: mongoose.model('Memory', MemorySchema),
+    SubscriptionPlan: mongoose.model('SubscriptionPlan', SubscriptionPlanSchema),
     Subscription: mongoose.model('Subscription', SubscriptionSchema),
     Notification: mongoose.model('Notification', NotificationSchema),
     Announcement: mongoose.model('Announcement', AnnouncementSchema),

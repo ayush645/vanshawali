@@ -1,4 +1,4 @@
-const { User, OTP, Community, TreeMember, Memory, Subscription, Notification, Announcement, Referral, CorrectionRequest } = require('../models/allModels');
+const { User, OTP, Community, TreeMember, Memory, SubscriptionPlan, Subscription, Notification, Announcement, Referral, CorrectionRequest } = require('../models/allModels');
 const { bcrypt, jwt, generateOTP, sendEmail, Razorpay } = require('../config/utils');
 const cloudinary = require('../config/cloudinary');
 const { sendNotificationToUser, sendNotificationToUsers } = require('../config/firebase');
@@ -1034,43 +1034,46 @@ exports.memoryController = {
 
 exports.paymentController = {
     getPlans: async (req, res) => {
-        res.json([
-            {
-                id: 'free',
-                name: 'Free',
-                price: 0,
-                currency: 'USD',
-                features: ['Up to 3 generations', 'Basic tree features', 'Community access'],
-                iapProductId: null,
-            },
-            {
-                id: 'premium_monthly',
-                name: 'Premium Monthly',
-                price: 9.99,
-                currency: 'USD',
-                interval: 'month',
-                features: ['Unlimited generations', 'PDF export', 'Priority support', 'Advanced features'],
-                iapProductId: 'com.familytree.premium.monthly',
-            },
-            {
-                id: 'premium_yearly',
-                name: 'Premium Yearly',
-                price: 99.99,
-                currency: 'USD',
-                interval: 'year',
-                features: ['Unlimited generations', 'PDF export', 'Priority support', 'Advanced features', 'Save 17%'],
-                iapProductId: 'com.familytree.premium.yearly',
-            },
-            {
-                id: 'lifetime',
-                name: 'Lifetime',
-                price: 299.99,
-                currency: 'USD',
-                interval: 'lifetime',
-                features: ['All Premium features', 'Lifetime access', 'No recurring fees', 'Future updates included'],
-                iapProductId: 'com.familytree.premium.lifetime',
-            },
-        ]);
+        try {
+            // Get dynamic plans from database
+            const plans = await SubscriptionPlan.find({ isActive: true })
+                .sort({ displayOrder: 1, createdAt: 1 });
+
+            // Always include free plan if not exists
+            const freePlan = plans.find(p => p.planId === 'free');
+            if (!freePlan) {
+                plans.unshift({
+                    planId: 'free',
+                    name: 'Free',
+                    price: 0,
+                    currency: 'INR',
+                    interval: 'lifetime',
+                    features: ['Up to 3 generations', 'Basic tree features', 'Community access'],
+                    description: 'Perfect for getting started',
+                    isActive: true,
+                    isPopular: false,
+                    displayOrder: 0
+                });
+            }
+
+            // Format for mobile app
+            const formattedPlans = plans.map(plan => ({
+                id: plan.planId,
+                name: plan.name,
+                price: plan.price,
+                currency: plan.currency,
+                interval: plan.interval === 'lifetime' ? undefined : plan.interval,
+                features: plan.features || [],
+                description: plan.description,
+                popular: plan.isPopular,
+                iapProductId: `com.familytree.${plan.planId}`,
+            }));
+
+            res.json(formattedPlans);
+        } catch (error) {
+            console.error('Get plans error:', error);
+            res.status(500).json({ message: 'Failed to fetch plans' });
+        }
     },
     
     // Verify In-App Purchase (iOS/Android)
@@ -1777,6 +1780,268 @@ exports.adminController = {
     } catch (error) {
       console.error('Get subscriptions error:', error);
       res.status(500).json({ message: 'Failed to fetch subscriptions' });
+    }
+  },
+
+  // ✅ SUBSCRIPTION PLANS MANAGEMENT
+  
+  // Get all subscription plans
+  getAllPlans: async (req, res) => {
+    try {
+      const plans = await SubscriptionPlan.find()
+        .sort({ displayOrder: 1, createdAt: 1 });
+
+      res.json(plans);
+    } catch (error) {
+      console.error('Get plans error:', error);
+      res.status(500).json({ message: 'Failed to fetch plans' });
+    }
+  },
+
+  // Create new subscription plan
+  createPlan: async (req, res) => {
+    try {
+      const { name, planId, price, currency, interval, features, description, isPopular, displayOrder } = req.body;
+
+      // Check if planId already exists
+      const existingPlan = await SubscriptionPlan.findOne({ planId });
+      if (existingPlan) {
+        return res.status(400).json({ message: 'Plan ID already exists' });
+      }
+
+      const plan = await SubscriptionPlan.create({
+        name,
+        planId,
+        price: parseFloat(price) || 0,
+        currency: currency || 'INR',
+        interval,
+        features: Array.isArray(features) ? features : [],
+        description,
+        isPopular: Boolean(isPopular),
+        displayOrder: parseInt(displayOrder) || 0,
+        isActive: true
+      });
+
+      res.json(plan);
+    } catch (error) {
+      console.error('Create plan error:', error);
+      res.status(500).json({ message: 'Failed to create plan' });
+    }
+  },
+
+  // Update subscription plan
+  updatePlan: async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { name, planId, price, currency, interval, features, description, isPopular, displayOrder, isActive } = req.body;
+
+      // Check if planId already exists (excluding current plan)
+      if (planId) {
+        const existingPlan = await SubscriptionPlan.findOne({ planId, _id: { $ne: id } });
+        if (existingPlan) {
+          return res.status(400).json({ message: 'Plan ID already exists' });
+        }
+      }
+
+      const plan = await SubscriptionPlan.findByIdAndUpdate(
+        id,
+        {
+          name,
+          planId,
+          price: parseFloat(price) || 0,
+          currency: currency || 'INR',
+          interval,
+          features: Array.isArray(features) ? features : [],
+          description,
+          isPopular: Boolean(isPopular),
+          displayOrder: parseInt(displayOrder) || 0,
+          isActive: Boolean(isActive)
+        },
+        { new: true }
+      );
+
+      if (!plan) {
+        return res.status(404).json({ message: 'Plan not found' });
+      }
+
+      res.json(plan);
+    } catch (error) {
+      console.error('Update plan error:', error);
+      res.status(500).json({ message: 'Failed to update plan' });
+    }
+  },
+
+  // Delete subscription plan
+  deletePlan: async (req, res) => {
+    try {
+      const { id } = req.params;
+
+      const plan = await SubscriptionPlan.findById(id);
+      if (!plan) {
+        return res.status(404).json({ message: 'Plan not found' });
+      }
+
+      // Check if any users are subscribed to this plan
+      const subscribedUsers = await Subscription.countDocuments({ planName: plan.planId, status: 'active' });
+      if (subscribedUsers > 0) {
+        return res.status(400).json({ 
+          message: `Cannot delete plan. ${subscribedUsers} users are currently subscribed to this plan.` 
+        });
+      }
+
+      await SubscriptionPlan.findByIdAndDelete(id);
+      res.json({ message: 'Plan deleted successfully' });
+    } catch (error) {
+      console.error('Delete plan error:', error);
+      res.status(500).json({ message: 'Failed to delete plan' });
+    }
+  },
+
+  // Get subscribers for a specific plan
+  getPlanSubscribers: async (req, res) => {
+    try {
+      const { planId } = req.params;
+
+      const subscribers = await Subscription.find({ planName: planId })
+        .populate('user', 'name email subscriptionTier isPremium')
+        .sort({ createdAt: -1 });
+
+      res.json(subscribers);
+    } catch (error) {
+      console.error('Get plan subscribers error:', error);
+      res.status(500).json({ message: 'Failed to fetch subscribers' });
+    }
+  },
+
+  // Create new subscription
+  createSubscription: async (req, res) => {
+    try {
+      const { userId, tier, status, amount, startDate, endDate } = req.body;
+
+      // Validate user exists
+      const user = await User.findById(userId);
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+
+      // Create subscription
+      const subscription = await Subscription.create({
+        user: userId,
+        planName: tier,
+        status: status || 'active',
+        amount: amount || 0,
+        startDate: startDate || new Date(),
+        endDate: endDate || null,
+        platform: 'admin',
+        productId: `admin_${tier}_${Date.now()}`
+      });
+
+      // Update user subscription status
+      await User.findByIdAndUpdate(userId, {
+        subscriptionTier: tier,
+        isPremium: tier !== 'free'
+      });
+
+      // Create notification
+      await Notification.create({
+        user: userId,
+        type: 'subscription',
+        title: 'Subscription Updated',
+        message: `Your subscription has been updated to ${tier} by admin.`,
+        relatedModel: 'Subscription',
+        relatedId: subscription._id,
+      });
+
+      const populatedSubscription = await Subscription.findById(subscription._id)
+        .populate('user', 'name email');
+
+      res.json(populatedSubscription);
+    } catch (error) {
+      console.error('Create subscription error:', error);
+      res.status(500).json({ message: 'Failed to create subscription' });
+    }
+  },
+
+  // Update subscription
+  updateSubscription: async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { tier, status, amount, startDate, endDate } = req.body;
+
+      const subscription = await Subscription.findById(id);
+      if (!subscription) {
+        return res.status(404).json({ message: 'Subscription not found' });
+      }
+
+      // Update subscription
+      const updatedSubscription = await Subscription.findByIdAndUpdate(
+        id,
+        {
+          planName: tier,
+          status,
+          amount,
+          startDate,
+          endDate
+        },
+        { new: true }
+      ).populate('user', 'name email');
+
+      // Update user subscription status
+      await User.findByIdAndUpdate(subscription.user, {
+        subscriptionTier: tier,
+        isPremium: tier !== 'free'
+      });
+
+      // Create notification
+      await Notification.create({
+        user: subscription.user,
+        type: 'subscription',
+        title: 'Subscription Updated',
+        message: `Your subscription has been updated to ${tier} by admin.`,
+        relatedModel: 'Subscription',
+        relatedId: subscription._id,
+      });
+
+      res.json(updatedSubscription);
+    } catch (error) {
+      console.error('Update subscription error:', error);
+      res.status(500).json({ message: 'Failed to update subscription' });
+    }
+  },
+
+  // Delete subscription
+  deleteSubscription: async (req, res) => {
+    try {
+      const { id } = req.params;
+
+      const subscription = await Subscription.findById(id);
+      if (!subscription) {
+        return res.status(404).json({ message: 'Subscription not found' });
+      }
+
+      // Update user to free tier
+      await User.findByIdAndUpdate(subscription.user, {
+        subscriptionTier: 'free',
+        isPremium: false
+      });
+
+      // Delete subscription
+      await Subscription.findByIdAndDelete(id);
+
+      // Create notification
+      await Notification.create({
+        user: subscription.user,
+        type: 'subscription',
+        title: 'Subscription Cancelled',
+        message: 'Your subscription has been cancelled by admin.',
+        relatedModel: 'User',
+        relatedId: subscription.user,
+      });
+
+      res.json({ message: 'Subscription deleted successfully' });
+    } catch (error) {
+      console.error('Delete subscription error:', error);
+      res.status(500).json({ message: 'Failed to delete subscription' });
     }
   },
   
